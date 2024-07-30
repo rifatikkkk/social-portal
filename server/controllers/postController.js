@@ -48,7 +48,41 @@ const PostController = {
     }
   },
   getPostById: async (req, res) => {
-    res.send("get post by id");
+    const { id } = req.params;
+    const { userId } = req.user;
+
+    try {
+      const isValidObjectId = /^[a-fA-F0-9]{24}$/.test(id);
+      if (!isValidObjectId) {
+        console.error("Invalid ObjectID format:", id);
+        return res.status(400).json({ error: "Invalid Id!" });
+      }
+
+      const post = await prisma.post.findUnique({
+        where: { id },
+        include: {
+          comments: {
+            include: {
+              user: true,
+            },
+          },
+          likes: true,
+          author: true,
+        },
+      });
+
+      if (!post) return res.status(404).json({ error: "Post not found!" });
+
+      const postWithLikeInfo = {
+        ...post,
+        likedByUser: post.likes.some((like) => like.userId === userId),
+      };
+
+      res.status(200).json(postWithLikeInfo);
+    } catch (error) {
+      console.error("Error in Get Post by Id", error);
+      res.status(500).json({ error: "Internal server error!" });
+    }
   },
   deletePost: async (req, res) => {
     res.send("delete post");
