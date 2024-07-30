@@ -24,7 +24,30 @@ const CommentController = {
     }
   },
   deleteComment: async (req, res) => {
-    res.send("delete");
+    const { id } = req.params;
+    const { userId } = req.user;
+
+    try {
+      const isValidObjectId = /^[a-fA-F0-9]{24}$/.test(id);
+      if (!isValidObjectId) {
+        console.error("Invalid ObjectID format:", id);
+        return res.status(400).json({ error: "Invalid Id!" });
+      }
+      const comment = await prisma.comment.findUnique({ where: { id } });
+
+      if (!comment)
+        return res.status(404).json({ error: "Comment not found!" });
+
+      if (comment.userId !== userId)
+        return res.status(403).json({ error: "No access!" });
+
+      await prisma.comment.delete({ where: { id } });
+
+      res.status(200).json(comment);
+    } catch (error) {
+      console.error("Error in Delete Comment", error);
+      res.status(500).json({ error: "Internal server error!" });
+    }
   },
 };
 
