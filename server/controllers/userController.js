@@ -41,8 +41,6 @@ const UserController = {
       console.error("Error in register", error);
       res.status(500).json({ error: "Internal server error!" });
     }
-    console.log(email, password, name);
-    res.send("register");
   },
   login: async (req, res) => {
     const { email, password } = req.body;
@@ -69,10 +67,37 @@ const UserController = {
       console.error("Error in login", error);
       res.status(500).json({ error: "Internal server error!" });
     }
-    res.send("Login");
   },
   getUserById: async (req, res) => {
-    res.send("GetUser");
+    const { id } = req.params;
+    const { userId } = req.user;
+
+    try {
+      const isValidObjectId = /^[a-fA-F0-9]{24}$/.test(id);
+      if (!isValidObjectId) {
+        console.error("Invalid ObjectID format:", id);
+        return res.status(400).json({ error: "Invalid Id!" });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id },
+        include: {
+          followers: true,
+          following: true,
+        },
+      });
+
+      if (!user) return res.status(404).json({ error: "User not found!" });
+
+      const isFollowing = await prisma.follows.findFirst({
+        where: { AND: [{ followerId: userId }, { followingId: id }] },
+      });
+
+      res.json({ ...user, isFollowing: Boolean(isFollowing) });
+    } catch (error) {
+      console.error("Error in Get User by Id", error);
+      res.status(500).json({ error: "Internal server error!" });
+    }
   },
   updateUser: async (req, res) => {
     res.send("Update");
