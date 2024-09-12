@@ -98,7 +98,7 @@ export const Card: React.FC<Props> = ({
           break
 
         case "comment":
-          await deleteComment(id).unwrap()
+          await deleteComment(commentId).unwrap()
           await refetchPosts()
 
         default:
@@ -119,7 +119,7 @@ export const Card: React.FC<Props> = ({
         ? await unlikePost(id).unwrap()
         : await likePost({ postId: id }).unwrap()
 
-      await refetchPosts()
+      await triggerGetAllPosts().unwrap()
     } catch (error) {
       if (hasErrorField(error)) {
         setError(error.data.error)
