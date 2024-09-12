@@ -119,7 +119,13 @@ export const Card: React.FC<Props> = ({
         ? await unlikePost(id).unwrap()
         : await likePost({ postId: id }).unwrap()
 
-      await triggerGetPostById(id).unwrap()
+      if (cardFor === "current-post") {
+        await triggerGetPostById(id).unwrap()
+      }
+
+      if (cardFor === "post") {
+        await triggerGetAllPosts().unwrap()
+      }
     } catch (error) {
       if (hasErrorField(error)) {
         setError(error.data.error)
