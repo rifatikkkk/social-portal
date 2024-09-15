@@ -22,6 +22,7 @@ import { CiEdit } from "react-icons/ci"
 import { ProfileInfo } from "../../components/profile-info"
 import { formatToClientData } from "../../utils/format-to-client-data"
 import { CountInfo } from "../../components/count-info"
+import { EditProfile } from "../../components/edit-profile"
 
 export const UserProfile = () => {
   const { id } = useParams<{ id: string }>()
@@ -53,6 +54,18 @@ export const UserProfile = () => {
       }
     } catch (error) {
       console.log(error)
+    }
+  }
+
+  const handleClose = async () => {
+    try {
+      if (id) {
+        await triggerGetUserByIdQuery(id)
+        await triggerCurrentQuery()
+        onClose()
+      }
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -88,19 +101,21 @@ export const UserProfile = () => {
                 {data.isFollowing ? "Unsubscribe" : "Subscribe"}
               </Button>
             ) : (
-              <Button endContent={<CiEdit />}>Edit</Button>
+              <Button endContent={<CiEdit />} onClick={() => onOpen()}>
+                Edit
+              </Button>
             )}
           </div>
         </Card>
 
         <Card className="flex flex-col space-y-4 p-5 flex-1">
-          <ProfileInfo title="Email" info={data.email} />
-          <ProfileInfo title="Location" info={data.location} />
+          <ProfileInfo title="Email:" info={data.email} />
+          <ProfileInfo title="Location:" info={data.location} />
           <ProfileInfo
-            title="Date of Birth"
+            title="Date of Birth:"
             info={formatToClientData(data.dateOfBirth)}
           />
-          <ProfileInfo title="About me" info={data.bio} />
+          <ProfileInfo title="Bio:" info={data.bio} />
 
           <div className="flex gap-2">
             <CountInfo count={data.followers.length} title="Followers" />
@@ -108,6 +123,7 @@ export const UserProfile = () => {
           </div>
         </Card>
       </div>
+      <EditProfile isOpen={isOpen} onClose={handleClose} user={data} />
     </>
   )
 }
